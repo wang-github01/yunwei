@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# chkconfig: 2345 10 90  
+# description: Start and Stop redis  
+cd /usr/local/redis/cluster/7004
+redis-server redis.conf
+cd /usr/local/redis/cluster/7005
+redis-server redis.conf
