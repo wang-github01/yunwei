@@ -1,0 +1,2 @@
+from tomcat1:v1.0.1  #from 后面是要跟新的基础的镜像和版本
+ADD sysadmin.war /home/demo/apache-tomcat-8.5.78/webapps

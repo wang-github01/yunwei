@@ -1,0 +1,6 @@
+FROM centos
+ADD jdk-8u191-linux-x64.tar.gz /usr/local
+ADD apache-tomcat-8.5.78.tar.gz /home/demo
+ENV JAVA_HOME /usr/local/jdk1.8.0_191
+ENV PATH $JAVA_HOME/bin:$PATH
+ENTRYPOINT  ./home/demo/apache-tomcat-8.5.78/bin/startup.sh && tail -F /home/demo/apache-tomcat-8.5.78/logs/catalina.out
