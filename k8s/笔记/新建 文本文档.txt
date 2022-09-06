@@ -1,0 +1,16 @@
+kubelet版本过高，v1.24版本后kubernetes放弃docker了
+
+[WARNING KubernetesVersion]: Kubernetes version is greater than kubeadm version. Please consider to upgrade kubeadm. Kubernetes version: 1.23.4. Kubeadm version: 1.17.x
+
+查看kubelet日志 journalctl -xefu kubelet
+
+"exec-opts": ["native.cgroupdriver=systemd"],
+
+join 192.168.101.102:6443 --token wx438k.tb1g83avromx6kri \
+        --discovery-token-ca-cert-hash sha256:c323d3debf1f160c1f61f14b1baa08f73a39fd9b32b2d8ec10f8103f8dc9aaf9 
+
+ systemctl status kubelet
+
+
+
+（命名空间、k8s label选择器、设置从master访问node应用）

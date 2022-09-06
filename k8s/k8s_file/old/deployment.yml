@@ -1,0 +1,27 @@
+apiVersion: apps/v1                       # Api接口版本
+kind: Deployment                          # 定义控制器 
+metadata:                                 # 信息
+  name: tomcat-deployment                 # deployment名称
+spec:                                     # 详情信息
+
+# 在具体参数信息spec下，只指定了副本数量，还需要指定副本标签与Deploymen控制器进行匹配
+  replicas: 1                             # 副本数
+  selector:                               # 选择标签
+    matchLabels:                          # 选择匹配
+      app: tomcat-deployment              # 匹配 tomcat-deployment 
+
+  template:                               # pod容器
+    metadata:                             # 具体信息
+      labels:                             # 定义标签
+        app: tomcat-deployment            # 标签 tomcat-deployment 
+
+    spec:
+      containers:                         # 容器
+      - name: tomcat-deployment          # 容器名
+        image: 192.168.15.131/tomcat-test/tomcat:v1.0.3    # 这里镜像就是harbor仓库的项目镜像
+        imagePullPolicy: Always           # 总是拉取镜像
+        ports:                            # 容器镜像
+        - containerPort: 80               # 镜像端口（此处定义暴露的端口）
+# 如果在Harbor仓库中已经吧镜像项目设置成公开，则注释掉一下两行代码
+      imagePullSecrets:                   # 这里指定创建的密钥
+      - name: login                       # secret.yaml 中name
