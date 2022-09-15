@@ -49,7 +49,7 @@
 > 查询host,user 数据
 >
 > ```
-> select Host,User from user;
+>     select Host,User from user;
 > ```
 >
 > 下面的列表就是查询user表后可以访问数据库的指定的Ip地址
@@ -69,7 +69,7 @@
 > 如果希望该用户能够在任何机器上登陆mysql，则将localhost改为"%"。
 >
 > ```
-> grant all on *.* to ‘wang’@’localhosl’ identified by “password”;
+> grant all on *.* to 'wang'@'localhosl' identified by "password";
 > ```
 >
 > - 库名:要远程访问的数据库名称,所有的数据库使用“*”

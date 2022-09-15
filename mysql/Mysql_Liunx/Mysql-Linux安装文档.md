@@ -156,6 +156,17 @@
 >
 > ![image-20220905215352399](images/image-20220905215352399.png)
 >
+> 如果报错
+>
+> ![image-20220914112338025](images/image-20220914112338025.png)
+>
+> 是因为没有 my.cnf.d 这个目录
+>
+> ```
+> mkdir /etc/my.cnf.d/
+> ```
+>
+> 
 
 ### 8、配置环境变量
 
@@ -170,21 +181,43 @@
 
 ### 9、设置开机自启
 
-> ```
-> cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysql
-> ```
+> - 先将mysql.server放置到/etc/init.d/mysql中
 >
+>   ```
+>   cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysql
+>   ```
+>
+> - 复制成功后我们需要给赋予权限
+>
+>   ```
+>   chmod +x /etc/init.d/mysql
+>   ```
+>
+> - 添加为服务
+>
+>   ```
+>   chkconfig --add mysql
+>   ```
+>
+> - 查看服务列表
+>
+>   ```
+>   chkconfig --list
+>   ```
+>
+>   ![image-20220914134848244](images/image-20220914134848244.png)
+>
+>   > 看到3、4、5状态为开或者为 on 则表示成功。 如果是 关或者 off 则执行一下
+>   >
+>   > ```
+>   > chkconfig --level 345 mysqld on
+>   > ```
+>   >
+>   > 重启计算机:reboot
+>   >
+>   > 再次查看服务列表或者查看3306端口号
 
 ### 10、启动mysql
-
-> 先将mysql.server放置到/etc/init.d/mysql中
->
-> ```
-> cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysql
-> ```
->
-
-### 11、启动mysql
 
 > ```
 > service mysql start
@@ -218,7 +251,7 @@
 
 
 
-### 12、修改密码
+### 11、修改密码
 
 > 查看密码
 >

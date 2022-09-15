@@ -126,3 +126,5 @@ kubectl create -f service.yml
 ## 五、测试项目
 
 > 看pod所在的node节点，用该节点ip+对外暴露的端口访问
+>
+> 也可以使用master ip+对外暴漏的端口访问
