@@ -103,7 +103,7 @@ kubectl get all
 ## 六、查看k8s服务日志
 
 ```
-journalctl -u kubelet –f
+journalctl -f -u kubelet
 ```
 
 ## 七、查看nodes

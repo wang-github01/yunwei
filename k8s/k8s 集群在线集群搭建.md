@@ -333,7 +333,7 @@
 >
 >    - kubeadm token create --ttl 0 #生成一个永远不过期的token
 >
->    - kubeadm token create delete 删除
+>    - kubeadm token  delete TOKEN # 删除
 >
 >      注：这里删除其他的token，只留一个生成永不过期的token
 >
@@ -365,3 +365,67 @@
 >
 > <img src="images/image-20220906202414333.png" alt="image-20220906202414333" style="zoom:50%;" />
 
+## 11、k8s 证书相关问题
+
+k8s默认证书有效时间是1年，证书过期后就不能执行相关命令进行管理，如下图：
+
+![1291340-20211228162902596-2034232157](images/1291340-20211228162902596-2034232157.png)
+
+> 查看k8s证书是否过期
+>
+> ```
+> openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text |grep ' Not '
+> ```
+>
+> ![image-20220916222057451](images/image-20220916222057451.png)
+>
+> **更新证书有效期为10年（只在masters上执行）**
+>
+> 1. 将脚本上传到masters上，脚本位置**k8s_file/update-kubeadm-cert.sh**
+>
+> 2. 给update-kubeadm-cert.sh证书授权可执行权限
+>
+>    ```
+>    chmod +x update-kubeadm-cert.sh
+>    ```
+>
+> 3. 执行下面命令，修改证书过期时间，把时间延长到10年
+>
+>    ```
+>    ./update-kubeadm-cert.sh all
+>    ```
+>
+> 4. 在master节点查询Pod是否正常,能查询出数据说明证书签发完成
+>    注：执行命令时需要断开连接重新连接命令才生效
+>
+>    ```
+>    kubectl  get pods -n kube-system
+>    ```
+>
+>    显示如下，能够看到pod信息，说明证书签发正常：
+>
+>    ![image-20220916223841185](images/image-20220916223841185.png)
+>
+>    5. 重启kubelet
+>
+>       ```
+>       systemctl restart kubelet
+>       ```
+>
+>    6. 验证证书有效时间是否延长到10年
+>
+>       ```
+>       openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text |grep ' Not '
+>       ```
+>
+>       ![image-20220916224025926](images/image-20220916224025926.png)
+
+> 查看证书有效时间方法二
+>
+> ```
+> kubeadm certs check-expiration
+> ```
+>
+> ![image-20220916210555265](images/image-20220916210555265.png)
+>
+> 如果RESIDUAL的显示结果是invalid，表示证书过期
