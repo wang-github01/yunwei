@@ -1,0 +1,36 @@
+apiVersion: apps/v1                       # Api接口版本
+kind: Deployment                          # 指定创建资源的角色/类型 
+metadata:                                 # 资源的元数据(用来描述 deployment 的信息)
+  name: demo                   # 用来描述 deployment 的名字，在同一个namespace中必须唯一
+  namespace: default                         # 部署在哪个namespace中
+  labels:                                 # labels是k8s特有的，可以叫做标签
+    app: demo
+    version: stable
+spec:                                     # 资源清单，在这里定义的是deployment所需要的资源清单
+# 在具体参数信息spec下，只指定了副本数量，还需要指定副本标签与Deploymen控制器进行匹配
+  replicas: 1                             # 副本数
+  revisionHistoryLimit: 3                 # 保留 3 个历史版本
+  selector:                               # 选择器
+    matchLabels:                          # 选择匹配
+      app: demo                           # 匹配 demo-deployment
+      version: stable
+  strategy:                              # 策略
+    rollingUpdate:                       # 滚动更新
+      maxSurge: 30%                      # 最大额外可以存在的副本数，可以为百分比，也可以为整数
+      maxUnavailable: 30%                # 示在更新过程中能够进入不可用状态的 Pod 的最大值，可以为百分比，也可以为整数
+    type: RollingUpdate                  # 滚动更新策略(先启动新的，等一个新的完全就绪后，就将老的停掉)
+  template:                               # pod模板定义
+    metadata:                             #  # 资源的元数据(用来描述 pod 的信息)
+      labels:                             # 定义 pod 标签
+        app: demo                    # 标签 tomcat-deployment
+        version: stable 
+    spec:                                 # 定义 pod 所需要的资源清单
+      containers:                         # 容器
+      - name: demo                        # 这个name也就是pod的名字，用于被deployment来selector（选择）;
+        image: 192.168.101.102/wang_ning_test/tomcat_demo01:v1.0.1    # 这里镜像就是harbor仓库的项目镜像
+        imagePullPolicy: Always           # 镜像的拉取策略，always是每次都从镜像仓库拉取，IfNotPresent 如果本地没有就拉取，never 只从本地拉取
+        ports:                            # 容器镜像
+        - containerPort: 8080             # pod内部容器的端口（此处定义暴露的端口）
+      # 如果在Harbor仓库中已经吧镜像项目设置成公开，则注释掉下两行代码
+      imagePullSecrets:                   # 这里是拉取镜像时所使用的账户
+      - name: login-harbor                # secret.yaml 中name

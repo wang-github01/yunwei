@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: demo-rbac
+  name: demo-rbac
+  namespace: roledemo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-rbac
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: demo-rbac
+    spec:
+      containers:
+      - image: 192.168.101.102/wang_ning_test/demo_jar:v1.0.1
+        name: demo-jar-wvvbd
+        resources: {}
+status: {}

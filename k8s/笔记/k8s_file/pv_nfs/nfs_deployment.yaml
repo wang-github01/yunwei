@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-dep1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-nfs
+  template:
+    metadata:
+      labels:
+        app: demo-nfs
+    spec:
+      containers:
+      - name: demo
+        image: 192.168.101.102/wang_ning_test/demo_jar:v1.0.0
+        volumeMounts:
+        - name: wwwroot
+          mountPath: /log4j
+        ports:
+        - containerPort: 80
+      volumes:     # nfs 服务端信息
+        - name: wwwroot
+          nfs:
+            server: 192.168.101.103
+            path: /data/nfs

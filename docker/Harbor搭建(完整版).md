@@ -434,7 +434,7 @@
 > 保存到本地
 >
 > ```
-> docker save 999c20aee5da > /home/artipub.tar    999c20aee5da为镜像ID
+> docker save -o 文件名.tar REPOSITORY:TAG
 > ```
 >
 > 将本地镜像文件，运行在docker镜像中
@@ -442,4 +442,3 @@
 > ```
 > docker load < 本地镜像文件
 > ```
->

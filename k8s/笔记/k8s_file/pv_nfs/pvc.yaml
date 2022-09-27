@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-dep-pvc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-pvc
+  template:
+    metadata:
+      labels:
+        app: demo-pvc
+    spec:
+      containers:
+      - name: demo-pvc
+        image: 192.168.101.102/wang_ning_test/demo_jar:v1.0.0
+        volumeMounts:       # 设置挂载
+        - name: wwwroot
+          mountPath: /log4j
+        ports:
+        - containerPort: 8080
+      volumes:
+      - name: wwwroot
+        persistentVolumeClaim:
+          claimName: my-pvc
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  accessModes:    # 定义匹配模式
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi  # 定义容量

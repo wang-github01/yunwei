@@ -2,69 +2,64 @@ K8s 中deployment 和 service 是独立ip 端口不受影响
 
 ## 一、pod 操作
 
-> **列出所有运行的Pod信息。**
+**列出所有运行的Pod信息。**
+
+```
+kubectl get pods
+
+# 显示更多的pods列表信息(例如 pod的ip和所处的node)-o wide/yaml/json 可以用不用格式查看，常用wide格式
+kubectl get pods -o wide
+```
+
+![image-20220906211234475](images/image-20220906211234475.png)
+
+> ​    NAME：pod的名字
 >
-> ```
-> kubectl get pods
-> ```
+> ​    IP：pod 中的独立ip
 >
-> **显示更多的pods列表信息(例如 pod的ip和所处的node)**
+> ​    AGE：运行时间
 >
-> >  -o wide/yaml/json 可以用不用格式查看，常用wide格式
-> >
-> > ```
-> > kubectl get pods -o wide
-> > ```
-> >
-> > ![image-20220906211234475](images/image-20220906211234475.png)
-> >
-> > - ​    NAME：pod的名字
-> >
-> > - ​    IP：pod 中的独立ip
-> >
-> > - ​    AGE：运行时间
-> >
-> > - ​    NODE：镜像所在的node节点
->
-> **查看pod 日志(如果pod有多个容器需要加-c 容器名)**
->
-> ```
-> kubectl logs –f pod name
-> 
-> kubectl logs –f pod name –c 容器名
-> ```
->
-> **重启pod容器**
->
-> > 可以直接删除一个pod信息，然后会自动再重启一个新的pod节点从而实现重启容器（因为pod节点由副本控制，删除pod也会再重新拉起来）。
-> >
-> > kubectl delete pods pod的名字
-> >
-> > 例如 : 
-> >
-> > ```
-> > kubectl delete pods tomcat-deployment-7d574c4df8-ctrlv
-> > ```
+> ​    NODE：镜像所在的node节点
+
+**查看pod 日志**
+
+```
+kubectl logs –f pod name
+
+# 如果pod有多个容器需要加-c 容器名
+kubectl logs –f pod name –c 容器名
+```
+
+**重启pod容器**
+
+可以直接删除一个pod信息，然后会自动再重启一个新的pod节点从而实现重启容器（因为pod节点由副本控制，删除pod也会再重新拉起来）。
+
+```
+# 格式
+kubectl delete pods pod的名字
+
+kubectl delete pods tomcat-deployment-7d574c4df8-ctrlv
+```
 
 ## 二、deployment操作
 
-> **列出deployment的所有信息以wide形式输出**
+**列出deployment的所有信息以wide形式输出**
+
+```
+kubectl get deployment –o wide –A
+```
+
+![image-20220906211420029](images/image-20220906211420029.png)
+
+> NAMESPACE：命名空间
 >
-> > ```
-> > kubectl get deployment –o wide –A
-> > ```
-> >
-> > ![image-20220906211420029](images/image-20220906211420029.png)
-> >
-> > - NAMESPACE：命名空间
-> >
-> > - NAME：deployment名字
-> >
-> > - UP-TO-DATE:最新部署副本数
-> >
-> > - AVAILBLE: 运行中的副本数
-> >
-> > - AGE: 已经运行的时间
+> NAME：deployment名字
+>
+> UP-TO-DATE:最新部署副本数
+>
+> AVAILBLE: 运行中的副本数
+>
+> AGE: 已经运行的时间
 
 ## 三、查看 service 信息
 
@@ -118,6 +113,8 @@ kubectl get node
 
 ## 八、namespace命名空间
 
+> 命名空间吧pod 进行隔离
+>
 > k8s默认会自动生成3个命名空间 
 >
 > - default：所有未指定Namespace的对象都会被分配在default命名空间。 
@@ -134,7 +131,7 @@ kubectl get node
 >
 > ![image-20220906212138936](images/image-20220906212138936.png)
 >
-> 2 使用命令行创建
+> 2 使用命令行创建自定义命名空间
 >
 > ```
 > kubectl create namespace test
@@ -147,3 +144,79 @@ kubectl get node
 > ```
 > kubectl delete ns test
 > ```
+
+强制删除
+
+```
+kubectl delete pods damo-jar-5c66599dcd-clpmx --grace-period=0 --force
+```
+
+
+
+
+
+
+
+
+
+### kubectl delete --help
+
+### kubectl describe
+
+kube三件套就是kubeadm、kubelet 和 kubectl，三者的具体功能和作用如下：
+
+kubeadm：用来初始化集群的指令。
+kubelet：在集群中的每个节点上用来启动 Pod 和容器等。
+kubectl：用来与集群通信的命令行工具。
+需要注意的是：
+
+kubeadm不会帮助我们管理kubelet和kubectl，其他两者也是一样的，也就是说这三者是相互独立的，并不存在谁管理谁的情况；
+kubelet的版本必须小于等于API-server的版本，否则容易出现兼容性的问题；
+kubectl并不是集群中的每个节点都需要安装，也并不是一定要安装在集群中的节点，可以单独安装在自己本地的机器环境上面，然后配合kubeconfig文件即可使用kubectl命令来远程管理对应的k8s集群；
+
+kubectl create -f 和 apply -f
+
+
+
+
+
+
+
+k8s配置中的port、targetPort、nodePort和containerPort区别
+
+port
+port是k8s集群内部访问service的端口，即通过clusterIP: port可以访问到某个service
+
+nodePort
+nodePort是外部访问k8s集群中service的端口，通过nodeIP: nodePort可以从外部访问到某个service。
+
+targetPort
+targetPort是pod的端口，从port和nodePort来的流量经过kube-proxy流入到后端pod的targetPort上，最后进入容器。
+
+containerPort
+containerPort是pod内部容器的端口，targetPort映射到containerPort
+
+
+
+
+
+
+
+
+
+kubelet版本过高，v1.24版本后kubernetes放弃docker了
+
+[WARNING KubernetesVersion]: Kubernetes version is greater than kubeadm version. Please consider to upgrade kubeadm. Kubernetes version: 1.23.4. Kubeadm version: 1.17.x
+
+查看kubelet日志 journalctl -xefu kubelet
+
+"exec-opts": ["native.cgroupdriver=systemd"],
+
+join 192.168.101.102:6443 --token wx438k.tb1g83avromx6kri \
+        --discovery-token-ca-cert-hash sha256:c323d3debf1f160c1f61f14b1baa08f73a39fd9b32b2d8ec10f8103f8dc9aaf9 
+
+ systemctl status kubelet
+
+
+
+（命名空间、k8s label选择器、设置从master访问node应用）
