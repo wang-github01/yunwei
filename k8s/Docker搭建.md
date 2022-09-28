@@ -56,3 +56,19 @@
 > systemctl enable docker 		(设置开机自启)
 > ```
 
+## 8、设置镜像加速
+
+> vim /etc/docker/daemon.json （如果没有就创建）
+>
+> ```
+> {
+> "registry-mirrors": ["https://mirror.baidubce.com"]
+> }
+> ```
+>
+> ```
+> # 加载配置文件
+> systemctl daemon-reload
+> # 重启 docker 服务
+> systemctl restart docker
+> ```

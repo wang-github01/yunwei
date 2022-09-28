@@ -1,0 +1,13 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: read-pods
+  namespace: roledemo   # 命名空间
+subjects:
+- kind: User
+  name: wangning # 自定义名称区分大小写
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role #这必须是Role或ClusterRole
+  name: pod-reader # 这必须与您希望绑定的Role或ClusterRole的名称匹配
+  apiGroup: rbac.authorization.k8s.io

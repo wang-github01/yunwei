@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: demo-wang
+  name: demo-wang
+spec:
+  ports:
+  - port: 8001
+    name: demo-test
+  clusterIP: None
+  selector:
+    app: demo-wang
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: demo-statefulset
+  namespace: default
+spec:
+  serviceName: demo-wang
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo-wang
+  template:
+    metadata:
+      labels:
+        app: demo-wang
+    spec:
+      containers:
+      - name: demo-wang
+        image: 192.168.101.102/wang_ning_test/demo_jar:v1.0.0
+        ports:
+        - containerPort: 8080   # pod 内部容器端口

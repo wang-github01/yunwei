@@ -25,3 +25,10 @@ DNS1=8.8.8.8      # 设置DNS
 ```
 
 ![image-20220906231252768](images/image-20220906231252768.png)
+
+重启网卡命令
+
+```
+ service network restart
+```
+
