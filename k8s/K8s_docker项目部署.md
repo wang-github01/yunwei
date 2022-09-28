@@ -232,5 +232,6 @@ kubectl describe service service
 >
 > 也可以使用master ip+对外暴漏的端口访问
 
+## 六、设置域名访问
 
-
+使用 ingress 可以实现通过域名访问应用，具体的ingress部署参考 ingress_部署 文档
