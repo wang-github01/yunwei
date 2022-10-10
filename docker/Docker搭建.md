@@ -62,7 +62,7 @@
 >
 > ```
 > {
-> "registry-mirrors": ["https://mirror.baidubce.com"]
+>   "registry-mirrors": ["https://mirror.baidubce.com"]
 > }
 > ```
 >

@@ -15,7 +15,7 @@
 ### 1、下载docker-compose
 
 > ```
-> sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose）
+> sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 > ```
 >
 > ![image-20220905194625108](images/image-20220905194625108.png)
@@ -48,7 +48,7 @@
 ###  5、 安装epel
 
 > ```
-> yum install epel-release –y
+> yum –y install epel-release 
 > ```
 >
 
@@ -59,7 +59,7 @@
 > 默认情况下，Linux会自带安装Python，可以运行python --version命令查看
 >
 > ```
-> python –version
+> python --version
 > ```
 >
 
@@ -79,14 +79,16 @@
 > ```
 > mkdir -p /opt/python3 				（创建python3安装包存放路径）
 > 
-> tar –xvf  Python-3.7.0.tar.x 		（上次tar包并解压）
+> tar –xvf  Python-3.7.0.tar.xz 		（上传tar包并解压）
 > ```
 >
 
 **准备编译环境**
 
 > ```
-> yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gcc make
+> yum -y install gcc
+> 
+> yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel libffi-devel make
 > ```
 >
 
@@ -97,7 +99,8 @@
 > ```
 >
 > ```
-> ./configure --prefix=你的安装路径 （我的安装路径是/usr/bin/python3）
+> # 这里我得安装路径是/usr/bin/python3
+> ./configure --prefix=/usr/bin/python3 --enable-optimizations
 > ```
 >
 > ```
@@ -109,7 +112,7 @@
 > ```
 >
 
-**进入到安装目录，查看安装结果**
+**进入到安装目录/usr/bin/python3，查看安装结果**
 
 > 应存在如下4个文件名： bin、include、lib、share
 
@@ -118,7 +121,10 @@
 > 创建一个软链接并把软链接放到/usr/local/bin目录下
 >
 > ```
-> ln -s /安装路径/bin/python3.6 /usr/local/bin/python3
+> # ln -s /安装路径/bin/python3.7 /usr/local/bin/python3
+> 
+> ln -s /usr/bin/python3/bin/python3.7 /usr/local/bin/python3
+> ln -s /usr/bin/python3/bin/pip3 /usr/bin/pip3
 > ```
 >
 
@@ -132,7 +138,7 @@
 **查看是否安装成功**
 
 > ```
-> python3 –V
+> python3 --version
 > ```
 >
 > ![image-20220905201302837](images/image-20220905201302837.png)
@@ -190,7 +196,7 @@
 **查看是否安装成功**
 
 > ```
-> docker-compose –v
+> docker-compose -version
 > ```
 >
 
@@ -321,12 +327,6 @@
 > > ```
 > >
 >
-> **重新构建harbor**
->
-> > ```
-> > docker-compose up –d
-> > ```
-> >
 
 **登录测试**、
 

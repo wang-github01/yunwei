@@ -3,7 +3,7 @@
 1、默认情况下，Linux会自带安装Python，可以运行python --version命令查看
 
 > ```
-> python –version
+> python --version
 > ```
 >
 
@@ -30,7 +30,9 @@
 4、准备编译环境
 
 > ```
-> yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gcc make
+> yum -y install gcc
+> 
+> yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel libffi-devel make
 > ```
 >
 
@@ -41,7 +43,8 @@
 > ```
 > cd Python-3.7.0
 > 
-> ./configure --prefix=你的安装路径
+> # 这里我得安装路径是/usr/bin/python3
+> ./configure --prefix=/usr/bin/python3 --enable-optimizations
 > 
 > make
 > 
@@ -50,7 +53,7 @@
 > ```
 >
 
-6、进入到安装目录，查看安装结果
+6、进入到安装目录/usr/bin/python3，查看安装结果
 
 > 应存在如下4个文件名：bin、include、lib、share
 >
@@ -60,7 +63,10 @@
 > 创建一个软链接并把软链接放到/usr/local/bin目录下
 >
 > ```
-> ln -s /安装路径/bin/python3.6 /usr/local/bin/python3
+> # ln -s /安装路径/bin/python3.7 /usr/local/bin/python3
+> 
+> ln -s /usr/bin/python3/bin/python3.7 /usr/local/bin/python3
+> ln -s /usr/bin/python3/bin/pip3 /usr/bin/pip3
 > ```
 >
 > 查看创建结果
@@ -73,7 +79,7 @@
 8、查看是否安装成功
 
 > ```
-> python3 –V
+> python3 --version
 > ```
 >
 > ![image-20220906214904640](images/image-20220906214904640.png)

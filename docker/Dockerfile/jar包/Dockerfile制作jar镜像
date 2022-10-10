@@ -1,0 +1,6 @@
+FROM centos
+ADD jdk-8u191-linux-x64.tar.gz /usr/local
+ENV JAVA_HOME /usr/local/jdk1.8.0_191
+ENV PATH $JAVA_HOME/bin:$PATH
+COPY demo03-0.0.1-SNAPSHOT.jar /home
+ENTRYPOINT ["nohup","java","-jar","/home/demo03-0.0.1-SNAPSHOT.jar","&"]
