@@ -135,8 +135,9 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > 修改daemon.json后重启docker
 >
 > ```
+> # 加载配置
 > systemctl daemon-reload
-> 
+> # 重启docker
 > systemctl restart docker
 > ```
 >
@@ -187,8 +188,8 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >    name=Kubernetes
 >    baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
 >    enabled=1
->    gpgcheck=1
->    repo_gpgcheck=1
+>    gpgcheck=0
+>    repo_gpgcheck=0
 >    gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
 >    EOF
 >    ```
@@ -210,13 +211,13 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >    ```
 >    # 安装指定版本格式如下
 >    # yum install -y kubelet-<version> kubectl-<version> kubeadm-<version>
->    
+>       
 >    # 不指定则版本号默认为最新版本
 >    # yum install -y kubelet kubectl kubeadm
->    
+>       
 >    # 这里为了避免出现版本不匹配使用指定安装版本1.23.6和kubeadm初始化版本v1.23.6对应
 >    yum install -y kubeadm-1.23.6 kubelet-1.23.6 kubectl-1.23.6
->    
+>       
 >    # 设置开机启动
 >    systemctl enable kubelet  
 >    ```
@@ -227,13 +228,15 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 >    ```
 >    kubeadm reset # 重置
->    
+>       
 >    systemctl enable kubelet  # 设置开机启动
 >    ```
 
 ## 6、初始化集群 
 
 ### 6.1  编写配置文件
+
+（只在master上执行）
 
 > 在集群中所有节点都执行完上面的三点操作之后，我们就可以开始创建k8s集群了。因为我们这次不涉及高可用部署，因此初始化的时候直接在我们的目标master节点上面操作即可。
 >
@@ -298,8 +301,8 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > kubernetesVersion: 1.23.6     【安装的k8s 版本】
 > networking:
 >   dnsDomain: cluster.local
->   serviceSubnet: 10.96.0.0/12 【集群网段，可不修改，默认没有】
->   podSubnet: 10.8.64.0/18     【容器网段，可不修改，默认没有】
+>   serviceSubnet: 10.96.0.0/12 【配置集群网段，可不修改，默认没有】
+>   podSubnet: 10.8.64.0/18     【配置容器pod网段，可不修改，默认没有】
 > scheduler: {}
 > 
 > ---
@@ -315,7 +318,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > 1. 查看一下对应的镜像版本，确定配置文件是否生效
 >
 >    ```
->    kubeadm config images list --config kubeadm-flannel.conf
+>    kubeadm config images list --config kubeadm.conf
 >    ```
 >
 > ![image-20220923154222557](images/image-20220923154222557.png)
@@ -323,7 +326,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > 2. 确认没问题之后我们直接拉取镜像
 >
 >    ```
->    kubeadm config images pull --config kubeadm-flannel.conf
+>    kubeadm config images pull --config kubeadm.conf
 >    ```
 >
 > ![image-20220923154322390](images/image-20220923154322390.png)
@@ -331,7 +334,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > 3. 初始化
 >
 >    ```
->    kubeadm init --config kubeadm-flannel.conf
+>    kubeadm init --config kubeadm.conf
 >    ```
 >
 > ![image-20220919153205999](images/image-20220919153205999.png)
@@ -443,7 +446,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >    kubectl get nodes 
 >    ```
 >
-> ![image-20220923191422421](images/image-20220923191422421.png)
+> ![image-20221010143100044](images/image-20221010143100044.png)
 
 ## 8、安装网络插件CNI
 
@@ -453,7 +456,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 > 这里我下载的是 flanneld-v0.19.0-amd64.docker
 >
-> 1. 加载本地docker镜像：（三台集群都要导入 docker 镜像,将node）
+> 1. 加载本地docker镜像：（三台集群都要导入 docker 镜像,包括node）
 >
 >    ```
 >    docker load < flanneld-v0.19.0-amd64.docker
@@ -467,7 +470,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 >    ![image-20220923133345074](images/image-20220923133345074.png)
 >
-> 4. 修改 net-conf.json 参数
+> 4. 修改 net-conf.json 参数 （配置在 kube-flannel.yml 文件内）
 >
 >    ```
 >    # 配置的是pod的网段，这里我们使用此前计划好的10.8.64.0/18
@@ -480,10 +483,12 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >        }
 >    ```
 >
+>    ![image-20221010145310371](images/image-20221010145310371.png)
+>
 > 5. 部署 yaml 文件 
 >
 >    ```
->    kubectl apply -f kube-flannel.yml
+>    kubectl apply -f kube-flannel.yaml
 >    ```
 >
 >    ![image-20220923133706630](images/image-20220923133706630.png)
