@@ -105,7 +105,7 @@ kubectl label node node01 app=ingress
 #### 2、部署
 
 ```
-kubectl apply -f deploy.yaml
+kubectl apply -f ingress-deploy.yaml
 ```
 
 查看 ingress-nginx-controller pod 运行情况
@@ -151,7 +151,7 @@ spec:
         path: "/"
         backend:
           service:
-            name: demo-service
+            name: demo-service     # 已经部署好的应用的service名字
             port: 
               number: 8001  # 应用暴露给集群的端口
 
@@ -161,11 +161,20 @@ spec:
 kubectl apply -f ingress-deploy.yaml
 ```
 
+```
+# 查看部署ingress应用
+kubectl get ingress
+```
+
+![image-20221010171917713](images/image-20221010171917713.png)
+
 测试：
 
 由于我们 ingress 资源配置的 域名 是 wang.demo.com，所以我需要把它添加到 宿主机的hosts 文件中，如下
 
 > 这里的ip 为部署 ingress-nginx 的ip，因为ingress-nginx-controlle r在node01 上运行
+>
+> C:\Windows\System32\drivers\etc
 
 ![image-20220924152459571](images/image-20220924152459571.png)
 

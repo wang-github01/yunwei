@@ -148,7 +148,7 @@ K8S在默认情况下只能拉取Harbor仓库中的公有镜像，拉取私有�
 
    ```
    # 创建，拉取私有镜像（创建deployment资源 和 pod）
-   kubectl create -f deployment.yaml
+   kubectl apply -f deployment.yaml
    ```
 
 3. **查看创建的资源信息**

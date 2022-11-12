@@ -307,3 +307,15 @@ help         #显示各个命令的帮助信息
 
 ingress-nginx  #管理 ingress 服务的插件(官方安装和使用方式
 ```
+
+## 十四、pod状态
+
+pod的状态：
+
+pending：意思是一件创建了该pod，但是pod中一个或多个容器镜像还没有创建好running：意思就是pod内所有容器创建好了，至少有一个处于运行状态
+
+completed：就是pod内容器成功执行然后退出不会重启
+
+failed：pod中容器都退出，且至少一个容器退出失败
+
+unknown：就是某种原因无法获取pod状态
