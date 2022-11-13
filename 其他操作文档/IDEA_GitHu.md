@@ -73,3 +73,58 @@
 
    ![image-20221113005738365](images/image-20221113005738365.png)
 
+## 3、git remote
+
+idea 删除之前的git 地址重新提交到新的地址
+
+1. 查看关联的远程仓库信息
+
+   ```
+    # 查看关联的远程仓库的名称
+    git remote
+    # 查看关联的远程仓库的详细信息
+    git remote -v
+   ```
+
+   ![image-20221113222632823](images/image-20221113222632823.png)
+
+2. 删除远程仓库的关联
+
+   ```
+   git remote remove <name>
+   # name 为 git remote 查到的名字
+   ```
+
+3. 删除后在用查看关联的远程仓库信息查看是否还有
+
+   ```
+   # 查看关联的远程仓库的名称
+   git remote
+    # 查看关联的远程仓库的详细信息
+   git remote -v
+   ```
+
+   ![image-20221113222746812](images/image-20221113222746812.png)
+
+4. 添加新的仓库地址
+
+   ```
+    git remote add <name> <url>
+    # 这里 name 建议为项目名字，url为git的https链接
+   ```
+
+   ![image-20221113222809522](images/image-20221113222809522.png)
+
+5. 再次查看信息确认
+
+   ![image-20221113222831292](images/image-20221113222831292.png)
+
+6. 为了避免重新pus 报错，这里要接触之前的ssl验证
+
+   ```
+   git config --global http.sslVerify "false"
+   ```
+
+   ![image-20221113223046560](images/image-20221113223046560.png)
+
+7. 重新 git push
