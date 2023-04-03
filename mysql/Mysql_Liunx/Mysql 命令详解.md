@@ -160,6 +160,7 @@
 
 > ```
 > describe 表名;
+> desc 表名;
 > ```
 >
 > ![image-20220905221336493](images/image-20220905221336493.png)
@@ -171,6 +172,15 @@
 > ```
 >
 > ![image-20220905221410080](images/image-20220905221410080.png)
+
+### 5、查看表字段注释信息
+
+```
+show full columns from 表名;
+show full columns from student;
+```
+
+![f664561ea3748931ab43d2d29b71ca90](images/f664561ea3748931ab43d2d29b71ca90.png)
 
 ## 五、mysqldump 导出库表详细举例
 
