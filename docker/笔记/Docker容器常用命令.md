@@ -34,5 +34,10 @@ docker rm id/name 删除某个容器
 docker rmi id/name 删除某个镜像
 
 docker pull/push 从仓库拉取/向仓库推从镜像
-```
 
+docker cp id:容器路径文件 本地路径 （将容器中的文档复制到本地中）
+
+docker save -o 文件名.tar REPOSITORY:TAG 镜像打包
+
+docker load < 本地镜像文件 （加载本地镜像包到docker中）
+```

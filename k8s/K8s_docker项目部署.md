@@ -221,14 +221,14 @@ kubectl get svc
 **4.  查看service详情**
 
 ```
-kubectl describe service service
+kubectl describe service
 ```
 
 ![image-20220906210658872](images/image-20220906210658872.png)
 
 ## 五、测试项目
 
-> 看pod所在的node节点，用该节点ip+对外暴露的端口访问
+> 看pod所在的node节点，用该节点ip+对外暴露的端口访问(ip:32500)
 >
 > 也可以使用master ip+对外暴漏的端口访问
 

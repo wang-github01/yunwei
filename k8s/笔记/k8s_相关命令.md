@@ -319,3 +319,23 @@ completed：就是pod内容器成功执行然后退出不会重启
 failed：pod中容器都退出，且至少一个容器退出失败
 
 unknown：就是某种原因无法获取pod状态
+
+## 十五、进入pod
+
+1、进入默认命名空间的pod
+
+kubectl exec NAME bash
+
+2、进入其他明明空间的pod
+
+kubectl exec NAME -n NAMESPACE bash
+
+## 十六、将文件从pod中导出
+
+```
+1、导出默认命名空间中的pod文件
+kubectl cp NAME:/pod路径 /本地路径
+2、导出其他命名空间中的pod文件
+kubectl cp -n NAMESPACE NAME:/pod路径 /本地路径
+```
+
