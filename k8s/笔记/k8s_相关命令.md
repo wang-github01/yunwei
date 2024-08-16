@@ -58,6 +58,14 @@ kubectl exec -it NAME /bin/bash
 
 ![image-20220928190616410](images/image-20220928190616410.png)
 
+**查看pod 起不来原因**
+
+```
+kubectl describe pod [NAME] -n [NAMESPACE]
+```
+
+
+
 ## 二、deployment 操作
 
 **列出deployment的所有信息以wide形式输出**

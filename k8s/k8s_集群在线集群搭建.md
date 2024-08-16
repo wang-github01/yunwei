@@ -89,6 +89,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >    cat > /etc/sysctl.d/k8s.conf << EOF
 >    net.bridge.bridge-nf-call-ip6tables = 1
 >    net.bridge.bridge-nf-call-iptables = 1
+>    net.ipv4.ip_forward = 1
 >    EOF
 >    ```
 >
@@ -211,13 +212,13 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >    ```
 >    # 安装指定版本格式如下
 >    # yum install -y kubelet-<version> kubectl-<version> kubeadm-<version>
->       
+>          
 >    # 不指定则版本号默认为最新版本
 >    # yum install -y kubelet kubectl kubeadm
->       
+>          
 >    # 这里为了避免出现版本不匹配使用指定安装版本1.23.6和kubeadm初始化版本v1.23.6对应
 >    yum install -y kubeadm-1.23.6 kubelet-1.23.6 kubectl-1.23.6
->       
+>          
 >    # 设置开机启动
 >    systemctl enable kubelet  
 >    ```
@@ -228,7 +229,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 >    ```
 >    kubeadm reset # 重置
->       
+>          
 >    systemctl enable kubelet  # 设置开机启动
 >    ```
 
@@ -306,7 +307,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > scheduler: {}
 > 
 > ---
-> 
+>     【加入】
 > apiVersion: kubeproxy.config.k8s.io/v1alpha1
 > kind: KubeProxyConfiguration
 > mode: ipvs
@@ -459,7 +460,9 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > 1. 加载本地docker镜像：（三台集群都要导入 docker 镜像,包括node）
 >
 >    ```
+>    # 需要用到两个镜像flanneld-v0.19.0-amd64.docker、mirrored-flannelcni-flannel-cni-plugin-v1.0.0.tar
 >    docker load < flanneld-v0.19.0-amd64.docker
+>    docker load < mirrored-flannelcni-flannel-cni-plugin-v1.0.0.tar
 >    ```
 >
 >    ![image-20220923133544331](images/image-20220923133544331.png)
@@ -485,7 +488,18 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 >    ![image-20221010145310371](images/image-20221010145310371.png)
 >
-> 5. 部署 yaml 文件 
+> 5. 方法二
+>
+>    ```
+>    直接拉去镜像
+>    docker pull quay.io/coreos/flannel:v0.15.0
+>    加载配置文件
+>    curl -O https://raw.githubusercontent.com/coreos/flannel/v0.15.0/Documentation/kube-flannel.yml
+>    ```
+>
+>    
+>
+> 6. 部署 yaml 文件 
 >
 >    ```
 >    kubectl apply -f kube-flannel.yaml
@@ -493,7 +507,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 >    ![image-20220923133706630](images/image-20220923133706630.png)
 >
-> 6. 装好之后执行执行以下命令 STATUS 状态全部为 Running则网络插件安装成功
+> 7. 装好之后执行执行以下命令 STATUS 状态全部为 Running则网络插件安装成功
 >
 > ```
 > # 注意这里，flannel 会在所有节点运行
