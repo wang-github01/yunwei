@@ -347,3 +347,14 @@ kubectl cp NAME:/pod路径 /本地路径
 kubectl cp -n NAMESPACE NAME:/pod路径 /本地路径
 ```
 
+## 十七、查看集群各个组件的状态
+
+`kubectl get cs`命令特别用于获取集群中各个组件的状态信息，这对于诊断问题和确保集群的健康状态非常有用
+
+## 十八、查看资源使用情况
+
+```
+# 以node为例
+kubectl describe node <node-name> 
+```
+

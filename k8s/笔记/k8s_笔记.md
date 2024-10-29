@@ -60,7 +60,7 @@
 
 **主从 master 和 node** 
 
-1. master：主控节点，做管理工作，管理node节点工作 
+1. master：主控节点，做管理工作，管理node节点工作。
    - API server：核心服务，集群的统一入口，各个组件的协调者。以restful方式，交给etcd存储。
    - scheduler：节点的调度，是一个调度器，用于选择合适的node节点部署pod。
    - controller-manager:处理集群中常规的后台任务，一个资源对应一个控制器。
@@ -154,10 +154,14 @@ k8s 集群中对资源管理和资源对象编排部署都可以通过声明样�
 第一种 使用 kubectl create 命令生成yaml文件 （适用于初始项目系统中没有yaml文件）
 
 ```
-# 创建一个 资源类型为deployment、名字为demo-depl
-# --image 指定镜像为192.168.101.102/wang_ning_test/demo_jar，版本号为v1.0.0
+# 创建一个 资源类型为deployment、名字为demo-depl。
+# --image 指定镜像为192.168.101.102/wang_ning_test/demo_jar，版本号为v1.0.0。
 # --dry-run=client，只打印显示对象，而不运行。
-kubectl create deployment demo-depl --image=192.168.101.102/wang_ning_test/demo_jar:v1.0.0 -o yaml --dry-run=client > demo_deployment.yaml
+# -o yaml 参数是只成配置文件并不直接运行。
+# --dry-run 尝试运行，并不是真的运行
+kubectl create deployment demo-depl --image=192.168.101.102/wang_ning_test/demo_jar:v1.0.0 -o yaml --dry-run=client > demo_deployment.yaml。
+
+kubectl create deployment demo-depl --image=192.168.101.102/wang_ning_test/demo_jar:v1.0.0 -o yaml --dry-run > demo_deployment.yaml。
 ```
 
 ![image-20220926202059016](images/image-20220926202059016.png)
@@ -181,7 +185,6 @@ kubectl create deployment demo-depl --image=192.168.101.102/wang_ning_test/demo_
 # 一般使用 apply -f 创建yaml文件资源
 # 格式
 kubectl apply -f  yaml文件名字
-
 # 例子
 kubectl apply -f demo_deployment.yaml
 ```
@@ -309,7 +312,7 @@ mountPath: string //存储卷在容器内部 Mount 的绝对路径 readOnly: boo
 ports: //容器需要暴露的端口号列表
 -name: string
 containerPort: int //容器要暴露的端口
-hostPort: int //容器所在主机监听的端口（容器暴露端口映射到宿主机的端口，设置hostPort 时同一 台宿主机将不                能再启动该容器的第 2 份副本）
+hostPort: int //容器所在主机监听的端口（容器暴露端口映射到宿主机的端口，设置hostPort 时同一 台宿主机将不能再启动该容器的第 2 份副本）
 protocol: string //TCP 和 UDP，默认值为 TCP env: //容器运行前要设置的环境列表
 -name: string value: string
 resources:
@@ -363,7 +366,7 @@ path: string
 
 **4.3 pod重启机制**
 
-在 containers 下通过 restartPolicy 配置 pod 重启机制
+在 containers 下通过 restartPolicy 配置 pod 重启机制。
 
 - Always：默认策略，当容器终止退出后，总是重启容器。
 
@@ -459,11 +462,14 @@ kubectl describe node |grep Taints
 # 格式
 kubectl taint node [nodName] key=value:污点值（NoSchedule，PreferNoSchdule，NoExecute）
 
-# 例子
+# 例子添加污点
 kubectl taint node node01 env_role=yes:NoSchedule
 
 # 查看
 kubectl describe node node01 |grep Taints
+
+# 删除污点
+kubectl taint node node01 env_role=yes:NoSchedule-
 ```
 
 ### 7、pod相关命令
@@ -521,6 +527,8 @@ kubelet 也无法对它们进行健康检查
 > 加或删除。
 > Label 的最常见的用法是使用 metadata.labels 字段，来为对象添加 Label，通过
 > spec.selector 来引用对象
+>
+> k8s 中各种组件controller，pod，svc，pv等都是通过，label标签来建立关系的。
 
 ### 2、Label 示例
 
@@ -767,9 +775,17 @@ kubectl edit deployment demo-depl -n default
 
 > **Controller 部署守护进程**
 >
+> DaemonSet
+>
+> 在每个node上运行一个pod，新加入的node也同样运行在一个pod里面
+>
+> 在每个node节点安装数据采集工具
+>
 > **Controller 部署 job （一次行任务）**
 >
 > ![image-20220922143017156](images/image-20220922143017156.png)
+>
+> ![image-20240926092239706](E:\GitHup\yunwei\k8s\images\image-20240926092239706.png)
 >
 > **Controller 部署 CronJob （定时任务）**
 >
@@ -782,7 +798,7 @@ kubectl edit deployment demo-depl -n default
 > Service 是 Kubernetes 最核心概念，通过创建 Service,可以为一组具有相同功能的容器应
 > 用提供一个统一的入口地址，并且将请求负载分发到后端的各个容器应用上。
 >
-> service 定义一组pod的访问规则
+> service 定义一组pod的访问规则，可以定义不同业务需求，访问指定的pod。
 
 **pod、service、controller 三者之间的关系：**
 
@@ -800,6 +816,8 @@ kubectl edit deployment demo-depl -n default
 **pod 和 service 之间的关系：**
 
 > 通过 label 和 selector 标签建立关系 （通 controller 和 pod 建立关系一样）
+>
+> k8s中selector选择器的作用和用法 在Kubernetes(k8s)中,*selector选择器用于筛选和匹配特定的对象。它的作用是通过标签来选择和过滤对象*，主要是用selector来选择pod中的label
 >
 > ![image-20220922104743876](images/image-20220922104743876.png)
 >
@@ -851,9 +869,10 @@ kubectl get service  # 查询结果的 type 字段是
 
 无状态：
 
-- 任务pod都是一样的（一个控制器多个副本）
-- 使用那个 pod 没有具体要求
-- 不用考虑在那个node上运行
+- 任务pod都是一样的（一个控制器多个副本）。
+- 没有顺序要求。
+- 使用那个 pod 没有具体要求。
+- 不用考虑在那个node上运行。
 - 随意进行伸缩和扩展。
 
 有状态：
@@ -861,6 +880,20 @@ kubectl get service  # 查询结果的 type 字段是
 - 无状态的因素都要考虑
 - 让每一个pod 都是独立的，保持pod的启动顺序和唯一性
 - 唯一的网络标识符，持久存储
+- 有序，比如mysql中的主从
+
+k8s中使用有状态部署的情况
+
+​	在Kubernetes中，有状态部署是指那些需要维持特定状态的应用程序。这些应用程序通常需要维护数据的完整性和一致性，比如数据库、分布式存储系统等。
+
+有状态部署通常涉及以下几种情况：（数据持久化、数据一致性、管理状态）
+
+1. 数据库：例如MySQL、PostgreSQL等，需要数据持久化存储。
+2. 分布式存储：例如Cassandra、MongoDB等，需要数据分布式存储和复制。
+3. 消息队列：例如RabbitMQ、Kafka等，需要消息持久化存储。
+4. 应用程序集群：例如Elasticsearch，需要集群节点有序、稳定地运行。
+
+在Kubernetes中，为了支持有状态应用程序，提供了如StatefulSets、PersistentVolumes和PersistentVolumeClaims等资源对象。
 
 **无状态pod下的service部署**
 
@@ -902,7 +935,7 @@ kubectl get service  # 查询结果的 type 字段是
 >
 > ![image-20220926225717478](images/image-20220926225717478.png)
 
-**有状态 pod 下的service部署**(了解)
+**有状态 pod 下的service部署**
 
 > 使用 SatefulSet 有状态部署pod
 >
@@ -912,11 +945,11 @@ kubectl get service  # 查询结果的 type 字段是
 > apiVersion: v1
 > kind: Service
 > metadata:
->   labels:
->     app: demo-wang
->   name: demo-wang
+> labels:
+>  app: demo-wang
+> name: demo-wang
 > spec:
->   ports:
+> ports:
 >   - port: 8001
 >     name: demo-test
 >   clusterIP: None
@@ -964,7 +997,9 @@ kubectl get service  # 查询结果的 type 字段是
 >
 > ![image-20220926234528903](images/image-20220926234528903.png)
 >
-> deployment 和 statefueset 区别
+> deployment 和 statefueset 区别 （statefueset是有身份的有唯一标识的）
+>
+> deployment是无状态的部署，statefueset是有状态部署
 >
 > 根据主机名 + 按照一定规则生成域名。
 >
@@ -1111,6 +1146,8 @@ kubectl get secret,pod
 > ![image-20220927103837970](images/image-20220927103837970.png)
 >
 > 通过Service配置免密登录Harbor就能自动登录，从本地Harbor镜像仓库中拉取镜像了.等一段时间后pod的状态能从ContainerCreating ==> Running 说明 Harbot 的认证登录秘钥创建成功
+
+
 
 ## 十、k8s 核心技术-Namespace
 
@@ -1717,9 +1754,9 @@ spec:
 
 ## 十五、k8s核心技术-configMap
 
-> 作用：存储不加密数据到etcd，让Pod以变量过着以Volume挂载到容器中
+> 作用：存储不加密数据到etcd，让Pod以变量过着以Volume挂载到容器中（区分secret）
 >
-> 场景：配置文件
+> 场景：配置文件，ip，端口号等
 
 ### 1、ConfigMap 的创建
 
@@ -1843,6 +1880,12 @@ vim /etc/exports
 
 # 内容如下（路径可以自定义，前提是路径已经创建出来，实际存在的）
 /data/nfs *(rw,no_root_squash)
+这里可以设置多个路径 例如
+/data/nfs *(rw,no_root_squash)
+/data/k8s *(rw,no_root_squash)
+
+# 重新export共享(无需重启NFS服务)
+exportfs -arv
 ```
 
 ![image-20220926150402879](images/image-20220926150402879.png)
@@ -1856,6 +1899,8 @@ vim /etc/exports
 
 systemctl start nfs
 
+# 设置开机自启
+systemctl enable nfs
 # 查看进程
 
 ps -ef|grep nfs

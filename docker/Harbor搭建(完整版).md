@@ -200,6 +200,25 @@
 > ```
 >
 
+如果报错
+
+![image-20240819212912726](images\image-20240819212912726.png)
+
+#### 原因：
+
+安装requests的2.31.0包时引入了urllib3，而新版本的urllib3 需要OpenSSL 1.1.1+以上版本
+
+#### 解决
+
+```
+pip install urllib3==1.26.15  -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# 再次执行查看是否安装成功
+docker-compose -version
+```
+
+
+
 ## 三、安装Harbor
 
 ### 3.1 下载Harbor安装包

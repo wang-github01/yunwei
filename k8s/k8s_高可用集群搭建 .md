@@ -1,21 +1,35 @@
 #  k8s 集群在线集群搭建
 
-Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快速部署Kubernetes集群，本文使用kubeadm进行搭建k8s机器。
+## 1、高可用集群
 
-参考网址：https://baijiahao.baidu.com/s?id=1693739720541425345&wfr=spider&for=pc
+之前我们搭建的集群，只有一个master节点，当master节点宕机的时候，通过node将无法继续访问，而master主要是管理作用，所以整个集群将无法提供服务。搭建一个多master节点的高可用集群，不会存在单点故障问题，但是在node 和 master节点之间，需要存在一个 LoadBalancer组件，对外有一个统一的VIP：虚拟ip来对外进行访问
 
-## 1、机器准备
+![07db3862c0c341e083df704fa8c58cb6~noop](images\07db3862c0c341e083df704fa8c58cb6~noop.png)
 
-> 这里我们准备三台虚拟机，一台master、两台node
+## 2、高可用集群技术细节
+
+![4d1db5a901d846029665c6f51adc14e8~noop](images\4d1db5a901d846029665c6f51adc14e8~noop.png)
+
+- keepalived：配置虚拟ip，检查节点的状态
+- haproxy：负载均衡服务【类似于nginx】
+
+
+
+## 3、机器准备
+
+> 这里我们准备四台虚拟机，两台master、两台node、一个虚拟VIP（可以用机器就是一个ip）
 >
-> | 机器角色 |       ip       | 主机名 |
-> | :------: | :------------: | :----: |
-> |  master  | 192.168.37.110 | master |
-> |   node   | 192.168.37.111 | node01 |
-> |   node   | 192.168.37.112 | node02 |
+> |   机器角色    |       ip        |    主机名    |
+> | :-----------: | :-------------: | :----------: |
+> |    master     | 192.168.101.102 | k8s-master01 |
+> |    master     | 192.168.101.103 | k8s-master02 |
+> |     node      | 192.168.101.104 |  k8s-node01  |
+> |     node      | 192.168.101.105 |  k8s-node02  |
+> | VIP（虚拟ip） | 192.168.101.106 |              |
 >
+> 
 
-## 2、安装前环境确认
+## 4、安装前环境确认
 
 > $\textcolor{red}{三台机器都需要执行：}$
 >
@@ -66,20 +80,23 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > 7. $\textcolor{red}{修改三台机器的主机名,分别在三台机器上执行命令}$
 >
 >    ```
->    hostnamectl set-hostname master &&bash
->
->    hostnamectl set-hostname node01 &&bash
->
->    hostnamectl set-hostname node02 &&bash
+>    hostnamectl set-hostname k8s-master01 &&bash
+>    
+>    hostnamectl set-hostname k8s-master02 &&bash
+>    
+>    hostnamectl set-hostname k8s-node01 &&bash
+>    
+>    hostnamectl set-hostname k8s-node02 &&bash
 >    ```
 >
-> 8. 在master的机器上添加hosts （$\textcolor{red}{只在master上执行}$）
+> 8. 在master的机器上添加hosts （$\textcolor{red}{只在两个master上执行}$）
 >
 >    ```
 >    cat >> /etc/hosts << EOF
->    192.168.37.110 master
->    192.168.37.111 node01
->    192.168.37.112 node02
+>    192.168.101.102 k8s-master01
+>    192.168.101.103 k8s-master02
+>    192.168.101.104 k8s-node01
+>    192.168.101.104 k8s-node02
 >    EOF
 >    ```
 >
@@ -115,13 +132,13 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >     reboot
 >     ```
 
-## 3、docker安装
+## 5、docker安装
 
 > $\textcolor{red}{所有机器都要安装docker}$  (docker 安装见文档Docker搭建.md)
 
 
 
-## 4、配置 cgroup 驱动
+## 6、配置 cgroup 驱动
 
 > 而当一个系统中同时存在cgroupfs和systemd两者时，容易变得不稳定，因此最好更改设置，令容器运行时和 kubelet 使用 `systemd` 作为 `cgroup` 驱动，修改docker和k8s统一使用systemd.先在docker中修改配置文件 $\textcolor{red}{所有机器都要执行}$
 >
@@ -169,7 +186,225 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > ```
 >
 
-## 6、安装 kube 三件套
+## 7、所有master节点部署keepalived
+
+### 7.1安装相关包和keepalived
+
+```
+yum install -y conntrack-tools libseccomp libtool-ltbl
+
+yum install -y keepalived
+```
+
+### 7.2 修改配置文件
+
+```
+# 修改两台master机器配置文件，略有不同,# virtual_ipaddress使用VIP，interface网卡
+# 修改k8s-master01配置文件
+cat > /etc/keepalived/keepalived.conf <<EOF 
+! Configuration File for keepalived
+
+global_defs {
+   router_id k8s
+}
+
+vrrp_script check_haproxy {
+    script "killall -0 haproxy"
+    interval 3
+    weight -2
+    fall 10
+    rise 2
+}
+
+vrrp_instance VI_1 {
+    state MASTER       # 与master02 不同，master02 是BACKUP
+    interface ens33    # 修改网卡信息
+    virtual_router_id 51
+    priority 250
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass ceb1b3ec013d66163d6ab
+    }
+    virtual_ipaddress {
+        192.168.101.106    # 添加虚拟ip
+    }
+    track_script {
+        check_haproxy
+    }
+
+}
+EOF
+
+# 修改k8s-master02
+
+cat > /etc/keepalived/keepalived.conf <<EOF 
+! Configuration File for keepalived
+
+global_defs {
+   router_id k8s
+}
+
+vrrp_script check_haproxy {
+    script "killall -0 haproxy"
+    interval 3
+    weight -2
+    fall 10
+    rise 2
+}
+
+vrrp_instance VI_1 {
+    state BACKUP 
+    interface ens33 
+    virtual_router_id 51
+    priority 200
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass ceb1b3ec013d66163d6ab
+    }
+    virtual_ipaddress {
+        192.168.101.106
+    }
+    track_script {
+        check_haproxy
+    }
+
+}
+EOF
+```
+
+6.3 启动和检查
+
+```
+# 启动keepalived
+systemctl start keepalived.service
+# 设置开机自启
+systemctl enable keepalived.service
+# 查看启动状态
+systemctl status keepalived.service
+```
+
+### 7.4 查看网卡信息
+
+```
+# 启动后查看master1、master2的网卡信息
+ip a s ens33
+```
+
+可以看到k8s-master01多出一个ip，是自己是设置的VIP虚拟ip信息
+
+k8s-master02 是看不到的（因为k8s-master01是主节点，当主节点挂了后，再在从节点master02上生成虚拟ip,这里可以自己做宕机测试）
+
+![image-20240819003017592](images\image-20240819003017592.png)
+
+### 7.5 部署haproxy
+
+haproxy主要做负载的作用，将我们的请求分担到不同的node节点上
+
+```
+# 在所有master 上执行
+yum install -y haproxy
+```
+
+修改配置文件（修改所有master这里，所有机器的配置文件相同）
+
+两台master节点的配置均相同，配置中声明了后端代理的两个master节点服务器，指定了haproxy运行的端口为16443等，因此16443端口为集群的入口
+
+```
+cat > /etc/haproxy/haproxy.cfg << EOF
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    # to have these messages end up in /var/log/haproxy.log you will
+    # need to:
+    # 1) configure syslog to accept network log events.  This is done
+    #    by adding the '-r' option to the SYSLOGD_OPTIONS in
+    #    /etc/sysconfig/syslog
+    # 2) configure local2 events to go to the /var/log/haproxy.log
+    #   file. A line like the following can be added to
+    #   /etc/sysconfig/syslog
+    #
+    #    local2.*                       /var/log/haproxy.log
+    #
+    log         127.0.0.1 local2
+    
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon 
+       
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------  
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+#---------------------------------------------------------------------
+# kubernetes apiserver frontend which proxys to the backends
+#--------------------------------------------------------------------- 
+frontend kubernetes-apiserver
+    mode                 tcp
+    bind                 *:16443   
+    option               tcplog
+    default_backend      kubernetes-apiserver    
+#---------------------------------------------------------------------
+# round robin balancing between the various backends
+#---------------------------------------------------------------------
+# server 添加所有master ip地址  ip:6443 cherck  6443 为k8s 端口  
+backend kubernetes-apiserver
+    mode        tcp
+    balance     roundrobin
+    server      master01.k8s.io   192.168.101.102:6443 check
+    server      master02.k8s.io   192.168.101.103:6443 check
+#---------------------------------------------------------------------
+# collection haproxy statistics message
+#---------------------------------------------------------------------
+listen stats
+    bind                 *:1080
+    stats auth           admin:awesomePassword
+    stats refresh        5s
+    stats realm          HAProxy\ Statistics
+    stats uri            /admin?stats
+EOF
+```
+
+```
+# 启动 haproxy
+systemctl start haproxy
+# 开启自启
+systemctl enable haproxy
+```
+
+启动后，我们查看对应的端口是否包含 16443
+
+```
+lsof -i:16443
+```
+
+
+
+## 8、安装 kube 三件套
 
 > 安装 kubeadm , kubelet , kubectl
 >
@@ -212,13 +447,13 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >    ```
 >    # 安装指定版本格式如下
 >    # yum install -y kubelet-<version> kubectl-<version> kubeadm-<version>
->             
+>                
 >    # 不指定则版本号默认为最新版本
 >    # yum install -y kubelet kubectl kubeadm
->             
+>                
 >    # 这里为了避免出现版本不匹配使用指定安装版本1.23.6和kubeadm初始化版本v1.23.6对应
 >    yum install -y kubeadm-1.23.6 kubelet-1.23.6 kubectl-1.23.6
->             
+>                
 >    # 设置开机启动
 >    systemctl enable kubelet  
 >    ```
@@ -229,17 +464,15 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 >    ```
 >    kubeadm reset # 重置
->             
+>                
 >    systemctl enable kubelet  # 设置开机启动
 >    ```
 
-## 6、初始化集群 
+## 9、初始化集群 
 
-### 6.1  编写配置文件
+### 9.1  编写配置文件
 
-（只在master上执行）
-
-> 在集群中所有节点都执行完上面的三点操作之后，我们就可以开始创建k8s集群了。因为我们这次不涉及高可用部署，因此初始化的时候直接在我们的目标master节点上面操作即可。
+> 在集群中所有节点都执行完上面的三点操作之后，我们就可以开始创建k8s集群了。因为涉及高可用部署，**在具有vip的master上进行初始化操作**，这里为master1
 >
 > ```
 > # 我们先使用kubeadm命令查看一下主要的几个镜像版本
@@ -252,18 +485,20 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > 为了方便编辑和管理，我们还是把初始化参数导出成配置文件
 >
 > ```
-> kubeadm config print init-defaults > kubeadm.conf
+> kubeadm config print init-defaults > kubeadm-config.yaml
 > ```
 >
-> 考虑到大多数情况下国内的网络无法使用谷歌的k8s.gcr.io镜像源，我们可以直接在配置文件中修改imageRepository参数为阿里的镜像源
+> ![image-20240819114035829](images\image-20240819114035829.png)考虑到大多数情况下国内的网络无法使用谷歌的k8s.gcr.io镜像源，我们可以直接在配置文件中修改imageRepository参数为阿里的镜像源
 >
 > - imageRepository 指定镜像源
-> -  advertiseAddress 控制节点 ip （master ip）
+> - advertiseAddress 控制节点 ip （master ip）
 >
 > - kubernetesVersion 字段用来指定我们要安装的k8s版本
 > - localAPIEndpoint 参数需要修改为我们的master节点的IP和端口，初始化之后的k8s集群的apiserver地址就是这个
 > - serviceSubnet 和 dnsDomain 两个参数默认情况下可以不用修改，这里我按照自己的需求进行了变更
 > - nodeRegistration 里面的 name参数修改为对应 master 节点的hostname
+> - certSANs         #vip地址（原文档没有新增）
+> - controlPlaneEndpoint    #vip地址（原文的没有新增）
 >
 > 新增配置块使用ipvs，具体可以参考官方文档
 >
@@ -284,42 +519,39 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > nodeRegistration:
 >   criSocket: /var/run/dockershim.sock
 >   imagePullPolicy: IfNotPresent
->   name: master  【控制节点主机名】
+>   name: k8s-master01                  【控制节点主机名】
 >   taints: null
 > ---
 > apiServer:
+>   certSANS:                            【#虚拟vip地址】
+>   - 192.168.101.106
 >   timeoutForControlPlane: 4m0s
 > apiVersion: kubeadm.k8s.io/v1beta3
 > certificatesDir: /etc/kubernetes/pki
 > clusterName: kubernetes
+> controlPlaneEndpoint: 192.168.101.106:16443  【#虚拟vip地址】
 > controllerManager: {}
 > dns: {}
 > etcd:
 >   local:
 >     dataDir: /var/lib/etcd
 > imageRepository: registry.aliyuncs.com/google_containers  【指定镜像仓库】
-> kind: ClusterConfiguration
-> kubernetesVersion: 1.23.6     【安装的k8s 版本】
+> kind: ClusterConfiguration 
+> kubernetesVersion: 1.23.6         【安装的k8s 版本】
 > networking:
 >   dnsDomain: cluster.local
->   serviceSubnet: 10.96.0.0/12 【配置集群网段，可不修改，默认没有】
->   podSubnet: 10.8.64.0/18     【配置容器pod网段，可不修改，默认没有】
+>   serviceSubnet: 10.1.0.0/16      【配置集群网段，可不修改，默认没有】
+>   podSubnet: 10.244.0.0/16        【配置容器pod网段，可不修改，默认没有】
 > scheduler: {}
-> 
-> ---
->     【加入】
-> apiVersion: kubeproxy.config.k8s.io/v1alpha1
-> kind: KubeProxyConfiguration
-> mode: ipvs
 > 
 > ```
 
-### 6.2 初始化集群
+### 9.2 初始化集群
 
 > 1. 查看一下对应的镜像版本，确定配置文件是否生效
 >
 >    ```
->    kubeadm config images list --config kubeadm.conf
+>    kubeadm config images list --config kubeadm-config.yaml
 >    ```
 >
 > ![image-20220923154222557](images/image-20220923154222557.png)
@@ -327,20 +559,28 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > 2. 确认没问题之后我们直接拉取镜像
 >
 >    ```
->    kubeadm config images pull --config kubeadm.conf
+>    kubeadm config images pull --config kubeadm-config.yaml
 >    ```
 >
 > ![image-20220923154322390](images/image-20220923154322390.png)
 >
-> 3. 初始化
+> 3. 检查镜像是否全部拉取
 >
->    ```
->    kubeadm init --config kubeadm.conf
->    ```
+> ```
+> docker images
+> ```
 >
-> ![image-20220919153205999](images/image-20220919153205999.png)
+> ![image-20240819120329886](images\image-20240819120329886.png)
+>
+> 4. 初始化
+>
+> ```
+> kubeadm init --config kubeadm-config.yaml
+> ```
+>
+> ![1724054243788](images\1724054243788.png)
 
-### 6.3  配置 kubeconfig
+### 9.3  配置 kubeconfig
 
 > 刚初始化成功之后，我们还没办法马上查看k8s集群信息，需要配置kubeconfig相关参数才能正常使用kubectl连接apiserver读取集群信息。
 >
@@ -406,11 +646,11 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 
 
 
-## 7、将节点加入集群中
+## 10、将节点加入集群中
 
 > $\textcolor{red}{只在master机器上执行}$
 >
-> 1. 首先检查现有的token, kubeadm初始化成功后肯定会有一条记录
+> 1. **首先检查现有的token, kubeadm初始化成功后肯定会有一条记录**
 >
 >    - kubeadm token list #查看现在有的token
 >
@@ -422,13 +662,55 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 >      注：这里删除其他的token，只留一个生成永不过期的token
 >
-> 2. 获取ca证书sha256编码hash值（$\textcolor{red}{在master机器上运行}$）
+> 2. **获取ca证书sha256编码hash值（$\textcolor{red}{在master机器上运行}$）**
 >
 >    ```
 >    openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
 >    ```
 >
-> 3. 加入节点（$\textcolor{red}{在要加入node的机器上执行}$）
+> 3. **master节点加入集群**
+>
+>    **3.1. 复制密钥及相关文件**
+>
+>    ```
+>    #从其他master节点创建文件
+>    mkdir -p /etc/kubernetes/pki/etcd
+>    
+>    scp /etc/kubernetes/admin.conf root@192.168.101.103:/etc/kubernetes
+>       
+>    scp /etc/kubernetes/pki/{ca.*,sa.*,front-proxy-ca.*} root@192.168.101.103:/etc/kubernetes/pki
+>       
+>    scp /etc/kubernetes/pki/etcd/ca.* root@192.168.101.103:/etc/kubernetes/pki/etcd
+>    
+>    ```
+>
+>    **3.2. master节点加入集群**
+>
+>    ```
+>    kubeadm join master.k8s.io:16443 --token 65vbbj.blu45v7rxxz0icu9 \
+>        --discovery-token-ca-cert-hash sha256:0122bcf73cc6ed237d9e0c32761cc376a532be026f88a5b3b5666ae8f3fe3590 \
+>        --control-plane
+>    ```
+>
+>    ![image-20240819160528743](images\image-20240819160528743.png)
+>
+>    **3.3 配置环境变量**
+>
+>    ```
+>    mkdir -p $HOME/.kube
+>    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+>    sudo chown $(id -u):$(id -g) $HOME/.kube/config
+>    或者
+>    echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile
+>    ```
+>
+>    **3.4 使配置文件生效**
+>
+>    ```
+>    source /etc/profile 
+>    ```
+>
+> 4. **加入节点（$\textcolor{red}{在要加入node的机器上执行}$）**
 >
 >    kubeadm join master机器Ip:6443 --token 查到没过期token --discovery-token-ca-cert-hash sha256:获取的字符串
 >
@@ -440,7 +722,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 >    ![image-20220906202216474](images/image-20220906202216474.png)
 >
-> 4. 查看现在的节点情况 $\textcolor{red}{只在master机器上执行}$
+> 5. **查看现在的节点情况 $\textcolor{red}{只在master机器上执行}$**
 >
 >    只要能看到 各节点信息，说明 node 加入 master 成功 （ 如果 status 状态为 NotReady 先忽略）
 >
@@ -450,15 +732,15 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 > ![image-20221010143100044](images/image-20221010143100044.png)
 
-## 8、安装网络插件CNI
+## 11、安装网络插件CNI
 
-> $\textcolor{red}{只在master机器上执行}$
+> $\textcolor{red}{在所有机器上执行}$
 >
 > https://github.com/coreos/flannel/releases 官方仓库下载镜像 
 >
 > 这里我下载的是 flanneld-v0.19.0-amd64.docker
 >
-> 1. 加载本地docker镜像：（三台集群都要导入 docker 镜像,包括node）
+> 1. 加载本地docker镜像：（所有机器都要导入 docker 镜像,包括node）
 >
 >    ```
 >    # 需要用到两个镜像flanneld-v0.19.0-amd64.docker、mirrored-flannelcni-flannel-cni-plugin-v1.0.0.tar
@@ -477,17 +759,17 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 > 4. 修改 net-conf.json 参数 （配置在 kube-flannel.yml 文件内）
 >
 >    ```
->    # 配置的是pod的网段，这里我们使用此前计划好的10.8.64.0/18
+>    # 配置的是pod的网段，这里我们使用此前计划好的10.244.0.0/16
 >    net-conf.json: |
 >        {
->          "Network": "10.8.64.0/18",
+>          "Network": "10.244.0.0/16",
 >          "Backend": {
 >            "Type": "vxlan"
 >          }
 >        }
 >    ```
 >
->    ![image-20221010145310371](images/image-20221010145310371.png)
+>    ![image-20240819175130872](images\image-201240819175130872.png)
 >
 > 5. 方法二
 >
@@ -527,7 +809,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 
 > 5. 
 
-## 11. 测试kubernetes集群
+## 12. 测试kubernetes集群
 
 > 在Kubernetes集群中创建一个pod，验证是否正常运行：
 >
@@ -545,7 +827,7 @@ Kubeadm是一个K8s部署工具，提供kubeadm init和kubeadm join，用于快�
 >
 > 访问地址：http://NodeIP:Port  (NodelP:32504)
 
-## 12、k8s 证书相关问题
+## 13、k8s 证书相关问题
 
 参考网站：https://blog.csdn.net/erhaiou2008/article/details/124168680
 
