@@ -44,7 +44,7 @@
 
 > yum install docker-ce-版本号，我选的是docker-ce-18.03.1.ce
 >
-> 例如：yum install docker-ce-18.03.1.ce
+> 例如：yum install  -y docker-ce-18.03.1.ce
 >
 > docker version 或者 docker -v（查看docker版本，如何能看到自己选择安装的docker信息，则Docker安装成功）
 

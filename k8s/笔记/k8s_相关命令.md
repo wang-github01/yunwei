@@ -358,3 +358,17 @@ kubectl cp -n NAMESPACE NAME:/pod路径 /本地路径
 kubectl describe node <node-name> 
 ```
 
+## 十九、停机维修驱赶节点上的pod
+
+```
+驱赶node节点山的所有pod
+kubectl drain noden <node-name>
+
+#设置一个node以后不能被调度
+kubectl cordon noden
+
+# 恢复node节点可被调用
+kubectl uncordon noden
+```
+
+ 

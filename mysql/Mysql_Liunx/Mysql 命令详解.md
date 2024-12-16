@@ -227,3 +227,58 @@ show full columns from student;
 ### 4、分页
 
 > select * from 表名 where 条件 limit 10; //在页面中展示10行数据 
+
+### 5、函数
+
+```
+1. CONCAT CONCAT函数可以将多个字符串连接在一起，例如：
+SELECT CONCAT('Hello', ' ', 'World');
+结果为：'Hello World'
+select concat(列名1,列名2) from 表名
+
+2. SUBSTRING
+
+SUBSTRING函数可以截取字符串中的一部分，例如：
+SELECT SUBSTRING('Hello World', 1, 5);
+结果为：'Hello'
+select substring(列名,1,5) from 表名
+
+3. LENGTH
+LENGTH函数可以计算字符串的长度，例如：
+SELECT LENGTH('Hello World');
+结果为：11
+select length(列名) from 表名
+
+4. NOW
+NOW函数可以获取当前时间，例如：
+SELECT NOW();
+结果为：'2022-08-08 16:32:28'
+
+5. DATE_FORMAT DATE_FORMAT函数可以将日期格式化为特定的格式，例如：
+SELECT DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%s');
+结果为：
+'2022-08-08 16:32:28'
+
+6. YEAR YEAR函数可以获取日期中的年份，例如：
+SELECT YEAR('2022-08-08');
+结果为：2022
+7. MONTH
+MONTH函数可以获取日期中的月份，例如：
+SELECT MONTH('2022-08-08');
+结果为：8
+8. DAY DAY函数可以获取日期中的日份，例如：
+SELECT DAY('2022-08-08');
+结果为：8
+16. HOUR HOUR函数可以获取时间中的小时，例如：
+SELECT HOUR(NOW());
+结果为：16
+
+19. SUM SUM函数可以计算给定列的总和，例如：
+SELECT SUM(price) FROM products;
+结果为：1162.57
+
+20. COUNT COUNT函数可以计算指定列的行数，例如：
+SELECT COUNT(*) FROM orders;
+结果为：54
+```
+

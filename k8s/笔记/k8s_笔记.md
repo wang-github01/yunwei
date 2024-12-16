@@ -304,7 +304,7 @@ spec:
 containers: //pod 中的容器列表，可以有多个容器
 - name: string //容器的名称
 image: string //容器中的镜像
-imagesPullPolicy: [Always|Never|IfNotPresent]//获取镜像的策略，默认lways，每次都尝试重新下载镜像
+imagesPullPolicy: [Always|Never|IfNotPresent]//获取镜像的策略，默认Always，每次都尝试重新下载镜像
 command: [string] //容器的启动命令列表（不配置的话使用镜像内部的命令） args:[string] //启动参数列表
 workingDir: string //容器的工作目录 volumeMounts: //挂载到到容器内部的存储卷设置
 -name: string
@@ -508,7 +508,11 @@ kubelet 也无法对它们进行健康检查
 
 ### 9、Pod的状态
 
-![image-20220926212219816](images/image-20220926212219816.png)
+挂起（Pending）：apiserver已经创建了pod资源对象，但它尚未被调度完成或者仍处于下载镜像的过程中。
+运行中（Running）：pod已经被调度至某节点，并且所有容器都已经被kubelet创建完成。
+成功（Succeeded）：pod中的所有容器都已经成功终止并且不会被重启。
+失败（Failed）：所有容器都已经终止，但至少有一个容器终止失败，即容器返回了非0值的退出状态。
+未知（Unknown）：apiserver无法正常获取到pod对象的状态信息，通常由网络通信失败所导致。
 
 ### 10、pod 网络
 
@@ -2154,3 +2158,86 @@ curl 10.101.24.70:8090
 ![image-20220928143728637](images/image-20220928143728637.png)
 
 ![image-20220928143815701](images/image-20220928143815701.png)
+
+## 十八、k8s重启策略
+
+1、`Always`: 当容器失败时，总是重启容器。(没有定义重启策略、默认的就是Always)
+
+2、`OnFailure`: 当容器因为非零退出状态退出时，才重启容器。
+
+3、`Never`: 从不重启容器。
+
+```
+# 可以通过 restartPolicy 字段来设置重启策略
+apiVersion: v1
+kind: Pod
+metadata:
+  name: never-restart-policy-pod
+spec:
+  restartPolicy: Never
+  containers:
+  - name: my-container
+    image: nginx
+```
+
+## 十九、k8s 探针
+
+ 存活探针（livenessProbe） 探测容器是否正常运行（是否处于Running状态）。如果发现探测失败，会杀掉容器。容器会根据重启策略来决定是否重启。
+
+readinessProbe（就绪探针）：指示容器是否准备好服务请求。如果就绪探测失败，端点控制器将从与 Pod 匹配的所有 Service的端点中删除该 Pod 的 IP 地址。初始延迟之前的就绪状态默认为 Failure。如果容器不提供就绪探针，则默认状态为Success。
+
+startupProbe（启动探针）: 指示容器中的应用是否已经启动。如果提供了启动探测(startup probe)，则禁用所有其他探测，直到它成功为止。如果启动探测失败，kubelet将杀死容器，容器服从其重启策略进行重启。如果容器没有提供启动探测，则默认状态为成功Success。为啥需要这个探针呢？因为有些程序启动的时候时间很长。
+
+### 1、就绪探针和存活探针探测方式：
+
+1.1 exec：通过在容器内执行命令来检查服务是否正常，返回值为 0，则表示容器健康。
+
+![image-20241205221116835](E:\GitHup\yunwei\k8s\images\image-20241205221116835.png)
+
+1.2 httpGet：生产环境用的较多的方式，发送 HTTP 请求到容器内的应用程序，返回 200-399 状态码则表明容器健康。
+
+```
+   # HTTP方式的存活探针，通过get方法定期向容器发送http请求。方法中定义了请求路径、端口、请求头等信息。
+   # 由于探针仅在返回码≥200，小于400的情况下返回正常，10秒后探针检测失败，kubelet会重启容器。
+   spec:
+      containers:
+      - image: 192.168.101.110/demo/demo:v1.0.0
+        name: demo
+        livenessProbe: # 探针类型
+          initialDelaySeconds: 60 # 初始化时间；n 秒后才会执行探针
+          httpGet: # 探测方式
+            port: 8087
+            scheme: HTTP
+          timeoutSeconds: 2 # 超时时间
+          periodSeconds: 5 # 监测间隔时间
+          successThreshold: 1 # 检查 n 次成功就表示成功
+          failureThreshold: 2 # 监测失败 n 次
+```
+
+![image-20241205212219551](E:\GitHup\yunwei\k8s\images\image-20241205212219551.png)
+
+实际再内部执行的检测操作为
+
+![image-20241205213856155](E:\GitHup\yunwei\k8s\images\image-20241205213856155.png)
+
+模拟故障探测失败（多加http访问路径path字段）
+
+![image-20241205214117808](E:\GitHup\yunwei\k8s\笔记\images\image-20241205214117808.png)
+
+![image-20241205214005372](E:\GitHup\yunwei\k8s\images\image-20241205214005372.png)
+
+1.3 tcpSocket：通过容器的 IP 和 Port 执行 TCP 检查，监测容器内端口是否开放（主要是用于探测指定端口是否开开），如果能够建立TCP 连接，则表明容器健康。
+
+``` 
+# TCP探针参数与HTTP探针相似。
+livenessProbe:
+  tcpSocket:
+    port: 80
+# 例如 系统则会通过容器内部ip:80 发起tcp链接检查
+```
+
+### 2、存活探针和就绪探针的区别：
+
+存活探针主要是用于检查容器是否存活是否正常运行。
+
+就绪探针用于检查容器是否已经准备好接收流量。

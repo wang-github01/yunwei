@@ -96,7 +96,7 @@
 >    192.168.101.102 k8s-master01
 >    192.168.101.103 k8s-master02
 >    192.168.101.104 k8s-node01
->    192.168.101.104 k8s-node02
+>    192.168.101.105 k8s-node02
 >    EOF
 >    ```
 >
@@ -447,13 +447,13 @@ lsof -i:16443
 >    ```
 >    # 安装指定版本格式如下
 >    # yum install -y kubelet-<version> kubectl-<version> kubeadm-<version>
->                
+>                   
 >    # 不指定则版本号默认为最新版本
 >    # yum install -y kubelet kubectl kubeadm
->                
+>                   
 >    # 这里为了避免出现版本不匹配使用指定安装版本1.23.6和kubeadm初始化版本v1.23.6对应
 >    yum install -y kubeadm-1.23.6 kubelet-1.23.6 kubectl-1.23.6
->                
+>                   
 >    # 设置开机启动
 >    systemctl enable kubelet  
 >    ```
@@ -464,7 +464,7 @@ lsof -i:16443
 >
 >    ```
 >    kubeadm reset # 重置
->                
+>                   
 >    systemctl enable kubelet  # 设置开机启动
 >    ```
 
@@ -523,7 +523,7 @@ lsof -i:16443
 >   taints: null
 > ---
 > apiServer:
->   certSANS:                            【#虚拟vip地址】
+>   certSANS:                            【#虚拟vip地址，更高版本使用certSANs】
 >   - 192.168.101.106
 >   timeoutForControlPlane: 4m0s
 > apiVersion: kubeadm.k8s.io/v1beta3
@@ -895,3 +895,37 @@ k8s默认证书有效时间是1年，证书过期后就不能执行相关命令�
 > ![image-20220916210555265](images/image-20220916210555265.png)
 >
 > 如果RESIDUAL的显示结果是invalid，表示证书过期
+
+## 14、允许 master 节点运行 pod
+
+master 节点默认是不允许运行pod的，由于我们采用的是三主一丛集群模式，为了保证有充足的节点能够运行pod。这里将两名master从节点设置为可以运行的pod节点即（k8s-master02,k8s-master-03）
+
+1、 查看 所有 node 节点的调度
+
+```
+kubectl describe node|grep -E "Name:|Taints:"
+```
+
+![image-20241214115947335](E:\GitHup\yunwei\redis\images\image-20241214115947335.png)
+
+污点可选参数
+
+- NoSchedule: 一定不能被调度
+- PreferNoSchedule: 尽量不要调度
+- NoExecute: 不仅不会调度, 还会驱逐Node上已有的Pod
+
+2. 去除 k8s-master1 节点不允许配置的 label
+
+```
+kubectl taint node k8s-master02 node-role.kubernetes.io/master-
+kubectl taint node k8s-master03 node-role.kubernetes.io/master-
+```
+
+![image-20241214120454374](E:\GitHup\yunwei\redis\images\image-20241214120454374.png)
+
+3. 重新设置 master 节点不允许调度 pod
+
+```
+kubectl taint node k8s-master1 node-role.kubernetes.io/master=:NoSchedule
+```
+
