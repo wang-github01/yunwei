@@ -1,3 +1,7 @@
+---
+typora-root-url: ./
+---
+
 #  k8s 集群在线集群搭建
 
 ## 1、高可用集群
@@ -447,13 +451,13 @@ lsof -i:16443
 >    ```
 >    # 安装指定版本格式如下
 >    # yum install -y kubelet-<version> kubectl-<version> kubeadm-<version>
->                   
+>                      
 >    # 不指定则版本号默认为最新版本
 >    # yum install -y kubelet kubectl kubeadm
->                   
+>                      
 >    # 这里为了避免出现版本不匹配使用指定安装版本1.23.6和kubeadm初始化版本v1.23.6对应
 >    yum install -y kubeadm-1.23.6 kubelet-1.23.6 kubectl-1.23.6
->                   
+>                      
 >    # 设置开机启动
 >    systemctl enable kubelet  
 >    ```
@@ -464,7 +468,7 @@ lsof -i:16443
 >
 >    ```
 >    kubeadm reset # 重置
->                   
+>                      
 >    systemctl enable kubelet  # 设置开机启动
 >    ```
 
@@ -906,7 +910,7 @@ master 节点默认是不允许运行pod的，由于我们采用的是三主一�
 kubectl describe node|grep -E "Name:|Taints:"
 ```
 
-![image-20241214115947335](E:\GitHup\yunwei\redis\images\image-20241214115947335.png)
+![image-20241214115947335](/images/image-20241214115947335.png)
 
 污点可选参数
 
@@ -921,7 +925,7 @@ kubectl taint node k8s-master02 node-role.kubernetes.io/master-
 kubectl taint node k8s-master03 node-role.kubernetes.io/master-
 ```
 
-![image-20241214120454374](E:\GitHup\yunwei\redis\images\image-20241214120454374.png)
+![image-20241214120454374](/images/image-20241214120454374.png)
 
 3. 重新设置 master 节点不允许调度 pod
 

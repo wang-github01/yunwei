@@ -1,3 +1,7 @@
+---
+typora-root-url: ./
+---
+
 # Mysql 命令详解
 
 ## 一、  登录数据库
@@ -281,4 +285,107 @@ SELECT SUM(price) FROM products;
 SELECT COUNT(*) FROM orders;
 结果为：54
 ```
+
+## 七、多表联合查询
+
+1. **INNER JOIN（内连接）**：
+
+   - INNER JOIN返回两个表中字段匹配的行。
+   - 它显示了两个表中都满足条件的记录。
+   - 与join不同的是，INNER JOIN需要明确指定连接条件，即ON子句。
+   - 当使用join不带任何类型指定时，默认行为与INNER JOIN相同，但INNER JOIN明确表明了连接类型，使SQL语句更加清晰易懂。
+
+2. **LEFT JOIN（左连接）**
+
+   - LEFT JOIN返回左表中的所有记录以及右表中与左表中联接字段相等的记录。
+
+   - 如果右表中没有匹配的记录，则用NULL填充。
+
+   - LEFT JOIN通常用于查询某个表中的所有数据，并且希望将这些数据与另一个表中的数据进行关联。
+
+3. **RIGHT JOIN（右连接）**
+
+   - RIGHT JOIN返回右表中的所有记录和左表中匹配的记录。
+
+   - 如果左表中没有匹配的记录，则结果集中左表的部分显示为NULL。
+
+   - RIGHT JOIN更适用于查询某个表中的特定数据，并且希望将这些数据与另一个表中的所有数据进行关联。
+
+```
+SELECT 
+    e.employee_name, 
+    d.department_name
+FROM 
+    employees e
+LEFT JOIN 
+    departments d ON e.department_id = d.department_id;
+employees 表是左表（别名为 e）。
+departments 表是右表（别名为 d）。
+```
+
+笔记：
+
+部门表
+
+![image-20241219140737028](images/image-20241219140737028.png)
+
+员工表
+
+![image-20241219140940015](images/image-20241219140940015.png)
+
+项目表
+
+![image-20241219141015399](images/image-20241219141015399.png)
+
+工资表
+
+![image-20241219141113092](images/image-20241219141113092.png)
+
+```
+# 查询示例INNER JOIN（内连接）
+# 获取有分配部门和薪资的员工信息：
+SELECT 
+    e.employee_name, 
+    d.department_name, 
+    s.salary
+FROM 
+    employees e
+INNER JOIN 
+    departments d ON e.department_id = d.department_id
+INNER JOIN 
+    salaries s ON e.employee_id = s.employee_id;
+```
+
+![image-20241219141232968](images/image-20241219141232968.png)
+
+```
+LEFT JOIN（左连接）
+获取所有员工及其部门（如果有的话）和薪资（如果有的话）：
+
+SELECT 
+    e.employee_name, 
+    d.department_name, 
+    s.salary
+FROM 
+    employees e
+LEFT JOIN 
+    departments d ON e.department_id = d.department_id
+LEFT JOIN 
+    salaries s ON e.employee_id = s.employee_id;
+```
+
+![image-20241219141317019](images/image-20241219141317019.png)
+
+```
+RIGHT JOIN（右连接）
+SELECT 
+    d.department_name, 
+    e.employee_name
+FROM 
+    departments d
+RIGHT JOIN 
+    employees e ON d.department_id = e.department_id;
+```
+
+![image-20241219141448949](images/image-20241219141448949.png)
 

@@ -1,3 +1,7 @@
+---
+typora-root-url: ./
+---
+
 # k8s 笔记
 
 ## 一、k8s 概述
@@ -2192,7 +2196,7 @@ startupProbe（启动探针）: 指示容器中的应用是否已经启动。如
 
 1.1 exec：通过在容器内执行命令来检查服务是否正常，返回值为 0，则表示容器健康。
 
-![image-20241205221116835](E:\GitHup\yunwei\k8s\images\image-20241205221116835.png)
+![image-20241205221116835](images\image-20241205221116835.png)
 
 1.2 httpGet：生产环境用的较多的方式，发送 HTTP 请求到容器内的应用程序，返回 200-399 状态码则表明容器健康。
 
@@ -2214,7 +2218,7 @@ startupProbe（启动探针）: 指示容器中的应用是否已经启动。如
           failureThreshold: 2 # 监测失败 n 次
 ```
 
-![image-20241205212219551](E:\GitHup\yunwei\k8s\images\image-20241205212219551.png)
+![image-20241205212219551](images\image-20241205212219551.png)
 
 实际再内部执行的检测操作为
 
@@ -2222,9 +2226,9 @@ startupProbe（启动探针）: 指示容器中的应用是否已经启动。如
 
 模拟故障探测失败（多加http访问路径path字段）
 
-![image-20241205214117808](E:\GitHup\yunwei\k8s\笔记\images\image-20241205214117808.png)
+![image-20241205214117808](images\image-20241205214117808.png)
 
-![image-20241205214005372](E:\GitHup\yunwei\k8s\images\image-20241205214005372.png)
+![image-20241205214005372](images\image-20241205214005372.png)
 
 1.3 tcpSocket：通过容器的 IP 和 Port 执行 TCP 检查，监测容器内端口是否开放（主要是用于探测指定端口是否开开），如果能够建立TCP 连接，则表明容器健康。
 

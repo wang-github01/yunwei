@@ -1,3 +1,7 @@
+---
+typora-root-url: ./
+---
+
 # redis哨兵模式搭建
 
 ## 一、redis介绍
@@ -61,7 +65,7 @@ make
 cd src
 ```
 
-![image-20241016223759317](E:\GitHup\yunwei\redis\images\image-20241016223759317.png)
+![image-20241016223759317](images\image-20241016223759317-1735219206954-1.png)
 
 ## 四、配置 Redis
 
@@ -250,7 +254,7 @@ sentinel auth-pass mymaster 123456
 ps -ef|grep redis
 ```
 
-![image-20241016224530440](E:\GitHup\yunwei\redis\images\image-20241016224530440.png)
+![image-20241016224530440](images\image-20241016224530440-1735219206955-2.png)
 
 查看集群信息
 
@@ -270,11 +274,11 @@ info replication
 
 master 节点上可以看到，此节点为master 节点。有两个从节点，以及从节点的ip
 
-![image-20241016225129723](E:\GitHup\yunwei\redis\images\image-20241016225129723.png)
+![image-20241016225129723](images\image-20241016225129723-1735219206955-3.png)
 
 从节点查看集群信息，可以看到追随的主节点为192.168.101.103
 
-![image-20241016233007685](E:\GitHup\yunwei\redis\images\image-20241016233007685.png)
+![image-20241016233007685](images\image-20241016233007685-1735219206955-4.png)
 
 
 
@@ -292,7 +296,7 @@ master 节点上可以看到，此节点为master 节点。有两个从节点，
 ps -ef|grep redis
 ```
 
-![image-20241016225317871](E:\GitHup\yunwei\redis\images\image-20241016225317871.png)
+![image-20241016225317871](images\image-20241016225317871-1735219206955-5.png)
 
 ## 六、哨兵模式测试
 
@@ -315,7 +319,7 @@ set test_key "This is a test data"
 get test_key
 ```
 
-![image-20241016225648214](E:\GitHup\yunwei\redis\images\image-20241016225648214.png)
+![image-20241016225648214](images\image-20241016225648214-1735219206955-7.png)
 
 ## 6.2、主节点宕机测试
 
@@ -327,8 +331,8 @@ get test_key
 
 此时 192.168.101.105 机器上的节点成为了master节点
 
-![image-20241016230911287](E:\GitHup\yunwei\redis\images\image-20241016230911287.png)
+![image-20241016230911287](images\image-20241016230911287-1735219206955-6.png)
 
 另一个从节点追随的主机点变成了192.168.101.105
 
-![image-20241016231005376](E:\GitHup\yunwei\redis\images\image-20241016231005376.png)
+![image-20241016231005376](images\image-20241016231005376-1735219206955-8.png)

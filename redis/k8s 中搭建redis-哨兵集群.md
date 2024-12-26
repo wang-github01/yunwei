@@ -1,3 +1,7 @@
+---
+typora-root-url: ./
+---
+
 # k8s 中搭建redis-哨兵集群
 
 本次部署为基于k8s部署[redis](https://link.csdn.net/?target=https%3A%2F%2Fauth.huaweicloud.com%2Fauthui%2Fsaml%2Flogin%3FxAccountType%3Dcsdndev_IDP%26isFirstLogin%3Dfalse%26service%3Dhttps%3A%2F%2Fdeveloper.huaweicloud.com%2Fspace%2Fdevportal%2Fdesktop%3Futm_source%3Dcsdndspace%26utm_adplace%3Dcsdnffnr)一主两从三哨兵集群,本次[服务器](https://link.csdn.net/?target=https%3A%2F%2Fauth.huaweicloud.com%2Fauthui%2Fsaml%2Flogin%3FxAccountType%3Dcsdndev_IDP%26isFirstLogin%3Dfalse%26service%3Dhttps%3A%2F%2Fdeveloper.huaweicloud.com%2Fspace%2Fdevportal%2Fdesktop%3Futm_source%3Dcsdndspace%26utm_adplace%3Dcsdnffnr)为:
@@ -9,7 +13,7 @@ k8s-master03 192.168.101.104
 k8s-node01  192.168.101.105 
 ```
 
-![image-20241214115531952](E:\GitHup\yunwei\redis\images\image-20241214115531952.png)
+![image-20241214115531952](images\image-20241214115531952.png)
 
 ## 1、设置nfs存储
 
@@ -45,7 +49,7 @@ cd /k8s/redis-sentinel
 mkdir 0 1 2
 ```
 
-![image-20241214120911629](E:\GitHup\yunwei\redis\images\image-20241214120911629.png)
+![image-20241214120911629](images\image-20241214120911629.png)
 
 **(6) 192.168.101.102节点上执行,设置redis数据存储路径文件权限**
 
@@ -154,7 +158,7 @@ kubectl apply -f redis-sentinel-pv.yaml
 kubectl get pv | grep redis
 ```
 
-![image-20241214121821387](E:\GitHup\yunwei\redis\images\image-20241214121821387.png)
+![image-20241214121821387](images\image-20241214121821387.png)
 
 ## 3、创建namespace
 
@@ -170,7 +174,7 @@ kubectl create namespace redis
 kubectl get namespace
 ```
 
-![image-20241214122001827](E:\GitHup\yunwei\redis\images\image-20241214122001827.png)
+![image-20241214122001827](images\image-20241214122001827.png)
 
 ## 4、创建ConfigMap
 
@@ -618,7 +622,7 @@ kubectl apply -f redis-sentinel-ss-slave.yaml
 kubectl get pods -n redis
 ```
 
-![image-20241214123052544](E:\GitHup\yunwei\redis\images\image-20241214123052544.png)
+![image-20241214123052544](images\image-20241214123052544.png)
 
 至此,一主两从搭建完毕
 
@@ -710,11 +714,11 @@ kubectl apply -f redis-sentinel-service-sentinel.yaml
 kubectl get service -n redis
 ```
 
-![image-20241214123748455](E:\GitHup\yunwei\redis\images\image-20241214123748455.png)
+![image-20241214123748455](images\image-20241214123748455.png)
 
 **(4) 查看命名空间redis pod是否都启动**
 
-![image-20241214123906795](C:\Users\16897\AppData\Roaming\Typora\typora-user-images\image-20241214123906795.png)
+![image-20241214123906795](images/image-20241214123906795.png)
 
 至此：一主两从三哨兵集群搭建完毕
 
@@ -726,7 +730,7 @@ kubectl get service -n redis
 
 首先查看redsi master 节点的pod ip和 无头的service 设置的可供集群内部访问的端口
 
-![image-20241215235725685](E:\GitHup\yunwei\redis\images\image-20241215235725685.png)
+![image-20241215235725685](images\image-20241215235725685.png)
 
 这里ip为 10.224.1.12 端口为 6379
 
@@ -736,7 +740,7 @@ redis-cli -c -h 10.224.1.12 -p 6379
 auth Idc&57$S6z
 ```
 
-![image-20241216000045859](E:\GitHup\yunwei\redis\images\image-20241216000045859.png)
+![image-20241216000045859](images\image-20241216000045859.png)
 
 2、查看节点信息
 
@@ -744,7 +748,7 @@ auth Idc&57$S6z
 info replication
 ```
 
-![image-20241214193132857](E:\GitHup\yunwei\redis\images\image-20241214193132857.png)
+![image-20241214193132857](images\image-20241214193132857.png)
 
 3、测试数据
 
@@ -755,4 +759,4 @@ set test_key "This is a test data"
 get test_key
 ```
 
-![image-20241214174215522](E:\GitHup\yunwei\redis\images\image-20241214174215522.png)
+![image-20241214174215522](images\image-20241214174215522.png)
